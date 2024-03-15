@@ -23,6 +23,7 @@ void loop()
 {
   webSocket.loop();    // constantly check for websocket events
   ArduinoOTA.handle(); // listen for OTA events
+  handleMotionStatus();
 }
 
 void startWiFi()
@@ -50,7 +51,8 @@ void startWiFi()
 }
 
 void startOTA()
-{ // Start the OTA service
+{
+  // Start the OTA service
   ArduinoOTA.setHostname(OTAName);
   ArduinoOTA.setPassword(OTAPassword);
 
@@ -105,5 +107,23 @@ void webSocketEvent(uint8_t num, WStype_t type, uint8_t *payload, size_t lenght)
     Serial.printf("[%u] got WS text: %s\n", num, payload);
     webSocket.broadcastTXT(motionSenseStatus);
   }
+  }
+}
+
+void handleMotionStatus()
+{
+  uint64_t currentMillis = millis();
+  if (currentMillis - lastCheckTime >= interval)
+  {
+    // Save the last time the sensor was checked
+    lastCheckTime = currentMillis;
+
+    if (digitalRead(motionSensePin) != lastCheckStatus)
+    {
+      lastCheckStatus = digitalRead(motionSensePin);
+
+      String motionSenseStatusString = String(lastCheckStatus);
+      webSocket.broadcastTXT(motionSenseStatusString);
+    }
   }
 }
