@@ -8,6 +8,7 @@
 #include "ArduinoJson.h"
 #include "main.h"
 #include <arduino-timer.h>
+// WebSocketsServer webSocket = WebSocketsServer(81);
 
 void setup()
 {
@@ -19,22 +20,42 @@ void setup()
 
   startWiFi(); // Start a Wi-Fi access point, and try to connect to some given access points. Then wait for either an AP or STA connection
 
-  startOTA();    // Start the OTA service
-  startSPIFFS(); // Start the SPIFFS and list all contents
+  startOTA(); // Start the OTA service
+  // startSPIFFS(); // Start the SPIFFS and list all contents
 
-  startWebSocket(); // Start a WebSocket server
-  startServer();    // Start a HTTP server with a file read handler and an upload handler
+  // startWebSocket(); // Start a WebSocket server
+  // startServer();    // Start a HTTP server with a file read handler and an upload handler
+  webSocket.begin();
+  webSocket.onEvent(webSocketEvent);
 }
 #define RAPORT_WIFI_STATUS
+
+// void hexdump(const void *mem, uint32_t len, uint8_t cols = 16)
+// {
+//   const uint8_t *src = (const uint8_t *)mem;
+//   Serial.printf("\n[HEXDUMP] Address: 0x%08X len: 0x%X (%d)", (ptrdiff_t)src, len, len);
+//   for (uint32_t i = 0; i < len; i++)
+//   {
+//     if (i % cols == 0)
+//     {
+//       Serial.printf("\n[0x%08X] 0x%08X: ", (ptrdiff_t)src, i);
+//     }
+//     Serial.printf("%02X ", *src);
+//     src++;
+//   }
+//   Serial.printf("\n");
+// }
+
 void loop()
 {
 
-  webSocket.loop(); // constantly check for websocket events
 #ifdef RAPORT_WIFI_STATUS
   raportStatusOnSerial();
 #endif
-  server.handleClient(); // run the server
-  ArduinoOTA.handle();   // listen for OTA events
+  // server.handleClient(); // run the server
+  ArduinoOTA.handle(); // listen for OTA events
+
+  webSocket.loop(); // constantly check for websocket events
 }
 
 void startWiFi()
@@ -192,52 +213,44 @@ bool handleFileRead(String path)
   Serial.println(String("\tFile Not Found: ") + path); // If the file doesn't exist, return false
   return false;
 }
+void webSocketEvent(uint8_t num, WStype_t type, uint8_t *payload, size_t length)
+{
 
-void webSocketEvent(uint8_t num, WStype_t type, uint8_t *payload, size_t lenght)
-{ // When a WebSocket message is received
-  Serial.println("tewapol");
   switch (type)
   {
-  case WStype_DISCONNECTED: // if the websocket is disconnected
+  case WStype_DISCONNECTED:
     Serial.printf("[%u] Disconnected!\n", num);
     break;
   case WStype_CONNECTED:
-  { // if a new websocket connection is established
+  {
     IPAddress ip = webSocket.remoteIP(num);
     Serial.printf("[%u] Connected from %d.%d.%d.%d url: %s\n", num, ip[0], ip[1], ip[2], ip[3], payload);
+
+    // send message to client
+    webSocket.sendTXT(num, "Connected");
   }
   break;
-  case WStype_TEXT: // if new text data is received
-    Serial.printf("[%u] got WS text: %s\n", num, payload);
+  case WStype_TEXT:
+    Serial.printf("[%u] get Text: %s\n", num, payload);
 
-    // String payload_str = String((char*) payload);
+    // send message to client
+    // webSocket.sendTXT(num, "message here");
 
-    // process received JSON
-    DeserializationError error = deserializeJson(jsonDoc, payload);
+    // send data to all connected clients
+    // webSocket.broadcastTXT("message here");
+    break;
+  case WStype_BIN:
+    Serial.printf("[%u] get binary length: %u\n", num, length);
+    // hexdump(payload, length);
 
-    // Test if parsing succeeds.
-    if (error)
-    {
-      Serial.print(F("deserializeJson() failed: "));
-      Serial.println(error.f_str());
-      return;
-    }
-
-    // Fetch values.
-    // Most of the time, you can rely on the implicit casts.
-    // In other case, you can do doc["time"].as<long>();
-
-    if (jsonDoc["type"] == "POWER_BUTTON")
-    {
-      Serial.println("Json tells me to: pressPowerButton()");
-      pressPowerButton();
-    }
-    else if (jsonDoc["connected"] == true)
-    {
-      // Serial.println("Json tells me to: sendStatus()");
-      sendStatus();
-    }
-
+    // send message to client
+    // webSocket.sendBIN(num, payload, length);
+    break;
+  case WStype_ERROR:
+  case WStype_FRAGMENT_TEXT_START:
+  case WStype_FRAGMENT_BIN_START:
+  case WStype_FRAGMENT:
+  case WStype_FRAGMENT_FIN:
     break;
   }
 }
