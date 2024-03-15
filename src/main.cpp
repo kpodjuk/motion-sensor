@@ -28,26 +28,36 @@ void loop()
 
 void startWiFi()
 {
-  // Start a Wi-Fi access point, and try to connect to some given access points. Then wait for either an AP or STA connection
-  WiFi.softAP(ssid, password); // Start the access point
-  Serial.print("Access Point \"");
-  Serial.print(ssid);
-  Serial.println("\" started\r\n");
-
   WiFi.begin("Orange_Swiatlowod_Gora", "mlekogrzybowe"); // add Wi-Fi networks you want to connect to
 
   Serial.println("Connecting");
-  while (WiFi.status() != WL_CONNECTED)
+
+  unsigned long startTime = millis();
+  bool connectionFailed = false;
+
+  while (WiFi.status() != WL_CONNECTED && !connectionFailed)
   { // Wait for the Wi-Fi to connect
     delay(250);
     Serial.print('.');
+    connectionFailed = (millis() - startTime < delayBeforeAP) ? false : true;
   }
-  Serial.println("\r\n");
 
-  Serial.println("\r\n");
+  if (connectionFailed)
+  {
+    WiFi.softAP(ssid, password); // Start the access point
+    Serial.print("Access Point \"");
+    Serial.print(ssid);
+    Serial.println("\" started\r\n");
+  }
+  else
+  {
+    Serial.println("\r\n");
 
-  WiFi.setAutoReconnect(true);
-  WiFi.persistent(true);
+    Serial.println("\r\n");
+
+    WiFi.setAutoReconnect(true);
+    WiFi.persistent(true);
+  }
 }
 
 void startOTA()

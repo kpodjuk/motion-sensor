@@ -3,6 +3,7 @@
 // settings
 const int motionSensePin = 0; // gpio 0
 const unsigned long interval = 50;
+const uint64_t delayBeforeAP = 5 * 60 * 1000;
 const char *ssid = "Motion sensor"; // The name of the Wi-Fi network that will be created
 const char *password = "";          // The password required to connect to it, leave blank for an open network
 const char *OTAName = "ESP8266";    // A name and a password for the OTA service
