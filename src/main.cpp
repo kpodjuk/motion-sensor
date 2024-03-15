@@ -19,13 +19,13 @@ void setup()
 
   startWiFi(); // Start a Wi-Fi access point, and try to connect to some given access points. Then wait for either an AP or STA connection
 
-  startOTA();    // Start the OTA service
-  startSPIFFS(); // Start the SPIFFS and list all contents
+  startOTA(); // Start the OTA service
+  // startSPIFFS(); // Start the SPIFFS and list all contents
 
   startWebSocket(); // Start a WebSocket server
-  startServer();    // Start a HTTP server with a file read handler and an upload handler
+  // startServer();    // Start a HTTP server with a file read handler and an upload handler
 }
-#define RAPORT_WIFI_STATUS
+// #define RAPORT_WIFI_STATUS
 void loop()
 {
 
@@ -209,7 +209,7 @@ void webSocketEvent(uint8_t num, WStype_t type, uint8_t *payload, size_t lenght)
   break;
   case WStype_TEXT: // if new text data is received
     Serial.printf("[%u] got WS text: %s\n", num, payload);
-
+    webSocket.broadcastTXT("hello world!");
     // String payload_str = String((char*) payload);
 
     // process received JSON
