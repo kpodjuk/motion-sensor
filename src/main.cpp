@@ -7,6 +7,7 @@
 void setup()
 {
   pinMode(motionSensePin, INPUT);
+  pinMode(motionSensePin_2, INPUT);
 
   Serial.begin(115200); // Start the Serial communication to send messages to the computer
   delay(10);
@@ -109,12 +110,14 @@ void webSocketEvent(uint8_t num, WStype_t type, uint8_t *payload, size_t lenght)
   {
     IPAddress ip = webSocket.remoteIP(num);
     Serial.printf("[%u] Connected from %d.%d.%d.%d url: %s\n", num, ip[0], ip[1], ip[2], ip[3], payload);
+    Serial.printf("broadcastTXT status=%s\n", motionSenseStatus);
     webSocket.broadcastTXT(motionSenseStatus);
   }
   break;
   case WStype_TEXT:
   {
     Serial.printf("[%u] got WS text: %s\n", num, payload);
+    Serial.printf("broadcastTXT status=%s\n", motionSenseStatus);
     webSocket.broadcastTXT(motionSenseStatus);
   }
   }
@@ -128,11 +131,24 @@ void handleMotionStatus()
     // Save the last time the sensor was checked
     lastCheckTime = currentMillis;
 
+#if 0
+    Serial.printf("currentMillis=%i \t D0 status= %i \t D1 status= %i \r\n", 
+    (uint32_t)currentMillis, digitalRead(motionSensePin), digitalRead(motionSensePin_2));
+#endif
+
+    // Only if state changed
     if (digitalRead(motionSensePin) != lastCheckStatus)
     {
       lastCheckStatus = digitalRead(motionSensePin);
 
+      // set led 
+      digitalWrite(D0, lastCheckStatus);
+
+      // send message to websocket
       String motionSenseStatusString = String(lastCheckStatus);
+
+      Serial.printf("motionSenseStatusString=%s \r\n", motionSenseStatusString);
+
       webSocket.broadcastTXT(motionSenseStatusString);
     }
   }

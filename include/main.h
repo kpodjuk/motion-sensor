@@ -1,7 +1,8 @@
 #include <string.h>
 
 // settings
-const int motionSensePin = 0; // gpio 0
+const int motionSensePin = D1;   // gpio 0, d0
+const int motionSensePin_2 = D2; // gpio 1, d1
 const unsigned long interval = 50;
 const uint64_t delayBeforeAP = 5 * 60 * 1000;
 const char *ssid = "Motion sensor"; // The name of the Wi-Fi network that will be created
