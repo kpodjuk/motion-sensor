@@ -125,7 +125,7 @@ void webSocketEvent(uint8_t num, WStype_t type, uint8_t *payload, size_t lenght)
 }
 
 // Function to set the pin state and hold it for a specified duration in milliseconds
-void holdPinState(int pinState, int duration)
+void holdPinState(uint8_t pinState, uint64_t duration)
 {
   // Set the pin state here
   // For example: digitalWrite(pin, pinState);
@@ -144,7 +144,6 @@ void holdPinState(int pinState, int duration)
     digitalWrite(motionSensePin, 0x0); // Set the pin state here
   }
 }
-
 
 void handleMotionStatus()
 {
